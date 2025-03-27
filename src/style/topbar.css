@@ -1,0 +1,18 @@
+/* Topbar.css */
+.logo_section {
+    display: flex;
+    align-items: center;  /* Aligne verticalement l'image et le texte */
+  }
+  
+  .logo_section .logo_link {
+    display: flex;
+    align-items: center;  /* Pour s'assurer que l'image et le texte sont sur la même ligne */
+  }
+  
+  .logo_section .logo_text {
+    font-size: 30px;  /* Taille de police plus grande */
+    margin-left: -10px;  /* Espacement entre l'image et le texte */
+    font-weight: bold;  /* Pour rendre le texte un peu plus marqué */
+    color:aliceblue;
+  }
+  

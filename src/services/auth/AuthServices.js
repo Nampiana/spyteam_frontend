@@ -1,0 +1,30 @@
+import axios from "axios";
+import { ApiUrl } from "../../utils/modules";
+// import { header } from "../utils/modules";
+
+class AuthServices {
+    login(credentials) {
+      console.log(credentials);
+      // Ajoutez un return ici pour s'assurer que la promesse est bien retournée
+      return axios.post(`${ApiUrl}auth/login`, credentials);
+    }
+  
+
+//   register(credentials) {
+//     return axios.post(`${ApiUrl}auth/register`, credentials);
+//   }
+
+  checkToken(token) {
+    return axios.get(`${ApiUrl}auth/me`, { headers: { Authorization: `Bearer ${token}` } });
+  }
+
+//   update(credentials, id) {
+//     return axios.patch(`${ApiUrl}user/${id}`, credentials, header());
+//   }
+
+  logout() {
+    return axios.post(`${ApiUrl}auth/logout`);
+  }
+}
+
+export default new AuthServices();
