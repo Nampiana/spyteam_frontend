@@ -58,6 +58,13 @@ function Sidebar() {
               </Link>
             </li>
           )}
+          {user.role !== 2 && (
+            <li>
+              <Link to="/users-desactive">
+                <i className="fa fa-clock-o orange_color"></i> <span>Compte désactiver</span>
+              </Link>
+            </li>
+          )}
           <li>
               <Link to="/usage/list">
                 <i className="fa fa-table purple_color2"></i> <span>Surveillance</span>

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { ApiUrl } from "../../utils/modules";
+import { ApiUrl, header } from "../../utils/modules";
 // import { header } from "../utils/modules";
 
 class AuthServices {

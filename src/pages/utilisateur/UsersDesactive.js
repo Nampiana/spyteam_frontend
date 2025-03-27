@@ -11,15 +11,11 @@ function UsersList() {
   const navigate = useNavigate();
   const [message, setMessage] = useState(null); // État pour afficher les messages de succès ou d'erreur
 
-  const navigateToCreateUser = () => {
-    navigate("/create-user");
-  };
-
-  const handleDeleteUser = (userId) => {
-    UsersServices.update(userId, { active: 0 })
+  const handleActiveUser = (userId) => {
+    UsersServices.update(userId, { active: 1 })
       .then(() => {
-        setUsers(users.map(user => user._id === userId ? { ...user, active: 0 } : user));
-        setMessage({ type: "success", text: "Utilisateur supprimé avec succès." });
+        setUsers(users.map(user => user._id === userId ? { ...user, active: 1 } : user));
+        setMessage({ type: "success", text: "Utilisateur activer avec succès." });
         
         // Faire disparaître le message après 3 secondes
         setTimeout(() => {
@@ -28,7 +24,7 @@ function UsersList() {
       })
       .catch((error) => {
         setMessage({ type: "error", text: "Erreur lors de la suppression de l'utilisateur." });
-        console.error("Erreur lors de la suppression de l'utilisateur :", error);
+        console.error("Erreur lors de l'activation de l'utilisateur :", error);
         setTimeout(() => {
           setMessage(null);
         }, 2000);
@@ -62,7 +58,7 @@ function UsersList() {
                 <div className="white_shd full margin_bottom_30">
                   <div className="full graph_head">
                     <div className="heading1 margin_0">
-                      <h2>Liste des utilisateurs</h2>
+                      <h2>Liste des utilisateurs désactiver</h2>
                     </div>
                   </div>
                   <div className="table_section padding_infor_info">
@@ -79,7 +75,7 @@ function UsersList() {
                         </thead>
                         <tbody>
                           {users
-                          .filter(user => user.active === 1)
+                          .filter(user => user.active === 0)
                           .map((user) => (
                             <tr key={user._id}>
                               <td>{user.nom}</td>
@@ -95,19 +91,12 @@ function UsersList() {
                                   : "Inconnu"}
                               </td>
                               <td>
-                                <button className="btn btn-primary btn-sm" onClick={() => navigate(`/edit-user/${user._id}`)}>Modifier</button>
-                                <button className="btn btn-success btn-sm ml-2">Télécharger</button>
-                                <button className="btn btn-danger btn-sm ml-2" onClick={() => handleDeleteUser(user._id)}>Supprimer</button>
+                                <button className="btn btn-danger btn-sm ml-2" onClick={() => handleActiveUser(user._id)}>Activer</button>
                               </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
-                    </div>
-                    <div className="text-center mt-3">
-                      <button className="btn btn-success btn-sm" onClick={navigateToCreateUser}>
-                        Créer Utilisateur
-                      </button>
                     </div>
                   </div>
                 </div>

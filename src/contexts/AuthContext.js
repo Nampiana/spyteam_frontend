@@ -20,22 +20,33 @@ export const AuthProvider = ({ children }) => {
       const res = await AuthServices.login(credentials);
       console.log(res);
   
-      setUser(res.data.user);
+      const userData = res.data.data.user;
+      
+      if (userData.etat_active === 0) {
+        setAlertMessage({ type: "danger", text: "Votre compte est désactivé. Veuillez contacter l'administrateur." });
+        toast.error("Votre compte est désactivé. Veuillez contacter l'administrateur.", {
+          position: "top-right",
+          theme: "colored",
+          className: "toast-message",
+        });
+        return; // Bloque la connexion
+      }
+  
+      setUser(userData);
       setIsLogged(true);
       localStorage.setItem('access_token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.data.user)); 
-      console.log("user", res.data.data.user);
-      
+      localStorage.setItem('user', JSON.stringify(userData));
+  
+      console.log("user", userData);
+  
       // Redirection en fonction du rôle
-      const userRole = res.data.data.user.role;
-      if (userRole === 1) {
+      if (userData.role === 1) {
         navigate('/users');
-      } else if (userRole === 2) {
-        navigate('/usage/list'); 
+      } else if (userData.role === 2) {
+        navigate('/usage/list');
       } else {
-        navigate('/'); 
+        navigate('/');
       }
-      
     } catch (err) {
       console.error('Erreur de connexion :', err.response?.data?.message);
       setAlertMessage({ type: "danger", text: err.response?.data?.message || "Erreur de connexion !" });
@@ -48,6 +59,7 @@ export const AuthProvider = ({ children }) => {
       setIsLoading(false);
     }
   };
+  
 
   const logout = () => {
     AuthServices.logout()
@@ -78,12 +90,26 @@ export const AuthProvider = ({ children }) => {
       setIsLogged(true);
       AuthServices.checkToken(token)
         .then((res) => {
-          setUser(res.data.user);
-          // Redirection automatique si déjà connecté
-          const userRole = res.data.user.role;
-          if (userRole === 1) {
+          const userData = res.data.user;
+  
+          if (userData.etat_active === 0) {
+            setIsLogged(false);
+            setUser(null);
+            setAlertMessage({ type: "danger", text: "Votre compte est désactivé. Veuillez contacter l'administrateur." });
+            toast.error("Votre compte est désactivé. Veuillez contacter l'administrateur.", {
+              position: "top-right",
+              theme: "colored",
+              className: "toast-message",
+            });
+            navigate('/login'); // Redirige vers la page de connexion
+            return;
+          }
+  
+          setUser(userData);
+  
+          if (userData.role === 1) {
             navigate('/users');
-          } else if (userRole === 2) {
+          } else if (userData.role === 2) {
             navigate('/usage/list');
           }
         })
@@ -96,6 +122,7 @@ export const AuthProvider = ({ children }) => {
       navigate('/login');
     }
   }, [navigate]);
+  
 
   return (
     <AuthContext.Provider

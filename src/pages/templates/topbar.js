@@ -37,7 +37,7 @@ function Topbar() {
                   </a>
                   <div className="dropdown-menu">
                     <a className="dropdown-item" href="/profile">My Profile</a>
-                    <a className="dropdown-item" href="/settings">Settings</a>
+                    <a className="dropdown-item" href="/Setting">Settings</a>
                     <a className="dropdown-item" onClick={logout} style={{ cursor: "pointer" }}>
                       <span>Log Out</span> <i className="fa fa-sign-out"></i>
                     </a>

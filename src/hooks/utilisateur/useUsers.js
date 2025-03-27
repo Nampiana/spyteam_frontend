@@ -49,7 +49,7 @@ function useUsers() {
       .catch((err) => console.error(err));
   };
 
-  return { users, createUser, updateUser, deleteUser };
+  return { users, createUser, updateUser, deleteUser, setUsers };
 }
 
 export default useUsers;
