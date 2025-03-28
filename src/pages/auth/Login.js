@@ -21,9 +21,21 @@ const Login = () => {
       <div className="container">
         <div className="center verticle_center full_height">
           <div className="login_section">
-            <div className="logo_login">
+            <div className="logo_login" style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
               <div className="center">
-                <img width="210" src="images/logo/logo.png" alt="Logo" />
+                <img width="100vw" max-width="210px" src="images/logo/logo.png" alt="Logo" />
+              </div>
+              <div
+                className="logo-text"
+                style={{
+                  marginLeft: "10px",
+                  fontSize: "4vw", // Responsive font size
+                  fontWeight: "bold",
+                  color: "white", // Met le texte en blanc
+                  textAlign: "center", // Centre le texte horizontalement
+                }}
+              >
+                SpyTeam
               </div>
             </div>
             <div className="login_form">
@@ -51,22 +63,27 @@ const Login = () => {
                       required
                     />
                   </div>
-                  
+
                   {/* Afficher le message d'erreur ici avec un style approprié */}
                   {(errorMessage || alertMessage) && (
                     <div className="field" style={{ marginBottom: "15px" }}>
-                      <div className={`alert ${errorMessage ? "alert-danger" : `alert-${alertMessage?.type}`}`} style={{ margin: 0 }}>
+                      <div
+                        className={`alert ${errorMessage ? "alert-danger" : `alert-${alertMessage?.type}`}`}
+                        style={{ margin: 0 }}
+                      >
                         {errorMessage || alertMessage?.text}
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="field">
                     <label className="label_field hidden">hidden label</label>
                     <label className="form-check-label">
                       <input type="checkbox" className="form-check-input" /> Remember Me
                     </label>
-                    <a className="forgot" href="#">Forgotten Password?</a>
+                    <a className="forgot" href="#">
+                      Forgotten Password?
+                    </a>
                   </div>
                   <div className="field margin_0">
                     <label className="label_field hidden">hidden label</label>

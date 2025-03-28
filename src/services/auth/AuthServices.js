@@ -22,6 +22,11 @@ class AuthServices {
 //     return axios.patch(`${ApiUrl}user/${id}`, credentials, header());
 //   }
 
+updatePassword(id, passwordData) {
+  return axios.patch(`${ApiUrl}auth/updateMyPassword/${id}`, passwordData, header());
+}
+
+
   logout() {
     return axios.post(`${ApiUrl}auth/logout`);
   }

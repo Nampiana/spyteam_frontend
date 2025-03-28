@@ -9,10 +9,23 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Si l'utilisateur est connecté
     if (isLogged) {
-      navigate('/usage/list');
+      const userData = JSON.parse(localStorage.getItem("user"));
+
+      if (userData) {
+        if (userData.role === 1) {
+          navigate("/users"); 
+        } else if (userData.role === 2) {
+          navigate("/usage/list");
+        } else {
+          navigate("/login");
+        }
+      } else {
+        navigate("/login");
+      }
     } else {
-     navigate('/login');
+      navigate("/login");
     }
   }, [isLogged, navigate]);
 

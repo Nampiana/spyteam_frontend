@@ -42,7 +42,7 @@ function Sidebar() {
             <div className="user_info">
               <h6>{user.nom} {user.prenom}</h6>
               <p>
-                <span className="online_animation"></span> Online
+                <span className="online_animation"></span> Actif
               </p>
             </div>
           </div>

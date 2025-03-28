@@ -1,28 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import UsersServices from "../../services/utilisateur/UsersService";
+import useUsers from "../../hooks/utilisateur/useUsers";
 import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 
 function UserEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { getUserById, updateUser } = useUsers();
   const [user, setUser] = useState(null);
-  const [message, setMessage] = useState({ type: "", text: "" }); // État pour le message de validation
+  const [message, setMessage] = useState({ type: "", text: "" });
 
   useEffect(() => {
-    UsersServices.getOne(id)
+    getUserById(id)
       .then((res) => {
-        if (res.data) {
-          console.log("Utilisateur récupéré avec succès :", res.data.data);
-          setUser(res.data.data);
+        if (res) {
+          setUser(res);
         }
       })
-      .catch((err) => {
-        console.error("Erreur lors de la récupération de l'utilisateur :", err);
+      .catch(() => {
         setMessage({ type: "error", text: "Erreur lors du chargement des données." });
       });
-  }, [id]);
+  }, [id, getUserById]);
 
   const handleChange = (e) => {
     setUser({ ...user, [e.target.name]: e.target.value });
@@ -30,13 +29,12 @@ function UserEdit() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    UsersServices.update(id, user)
+    updateUser(id, user)
       .then(() => {
         setMessage({ type: "success", text: "Utilisateur modifié avec succès !" });
-        setTimeout(() => navigate("/users"), 2000); // Redirection après 2 secondes
+        setTimeout(() => navigate("/users"), 2000);
       })
-      .catch((err) => {
-        console.error("Erreur lors de la mise à jour :", err);
+      .catch(() => {
         setMessage({ type: "error", text: "Erreur lors de la modification de l'utilisateur." });
       });
   };
@@ -98,7 +96,9 @@ function UserEdit() {
                         </select>
                       </div>
                       <button type="submit" className="btn btn-primary">Mettre à jour</button>
-                      <button type="button" className="btn btn-secondary ml-2" onClick={() => navigate("/users")}>Annuler</button>
+                      <button type="button" className="btn btn-secondary ml-2" onClick={() => navigate("/users")}>
+                        Annuler
+                      </button>
                     </form>
                   </div>
                 </div>

@@ -1,38 +1,28 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useUsers from "../../hooks/utilisateur/useUsers"; 
-import UsersServices from "../../services/utilisateur/UsersService";
+import useUsers from "../../hooks/utilisateur/useUsers";
 import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 import Footer from "../templates/footer";
 
 function UsersList() {
-  const { users, setUsers } = useUsers();
+  const { users, setUsers, updateUser } = useUsers();
   const navigate = useNavigate();
-  const [message, setMessage] = useState(null); // État pour afficher les messages de succès ou d'erreur
+  const [message, setMessage] = useState(null);
 
   const navigateToCreateUser = () => {
     navigate("/create-user");
   };
 
   const handleDeleteUser = (userId) => {
-    UsersServices.update(userId, { active: 0 })
-      .then(() => {
-        setUsers(users.map(user => user._id === userId ? { ...user, active: 0 } : user));
-        setMessage({ type: "success", text: "Utilisateur supprimé avec succès." });
-        
-        // Faire disparaître le message après 3 secondes
-        setTimeout(() => {
-          setMessage(null);
-        }, 2000);
-      })
-      .catch((error) => {
-        setMessage({ type: "error", text: "Erreur lors de la suppression de l'utilisateur." });
-        console.error("Erreur lors de la suppression de l'utilisateur :", error);
-        setTimeout(() => {
-          setMessage(null);
-        }, 2000);
-      });
+    updateUser(userId, { active: 0 }, () => {
+      setUsers(users.map(user => user._id === userId ? { ...user, active: 0 } : user));
+      setMessage({ type: "success", text: "Utilisateur supprimé avec succès." });
+
+      setTimeout(() => {
+        setMessage(null);
+      }, 2000);
+    });
   };
 
   return (
@@ -51,7 +41,6 @@ function UsersList() {
                 </div>
               </div>
               
-              {/* Affichage du message */}
               {message && (
                 <div className={`alert ${message.type === "success" ? "alert-success" : "alert-danger"}`} role="alert">
                   {message.text}

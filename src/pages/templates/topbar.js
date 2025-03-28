@@ -6,6 +6,8 @@ import '../../style/topbar.css';
 function Topbar() {
   const { logout } = useContext(AuthContext);
   const [user, setUser] = useState({ nom: "", prenom: "" });
+  const image =  require('../../assets/images/layout_img/user_img.jpg');
+  const logo =  require('../../assets/images/logo/logo.png');
 
   useEffect(() => {
    const userData = JSON.parse(localStorage.getItem("user"));
@@ -23,7 +25,7 @@ function Topbar() {
           </button>
           <div className="logo_section">
             <a href="/" className="logo_link">
-               <img className="img-responsive" src="images/logo/logo.png" alt="#" />
+               <img className="img-responsive" src={logo} alt="#" />
                <span className="logo_text">SpyTeam</span>
             </a>
             </div>
@@ -32,14 +34,14 @@ function Topbar() {
               <ul className="user_profile_dd">
                 <li>
                   <a className="dropdown-toggle" data-toggle="dropdown">
-                    <img className="img-responsive rounded-circle" src="images/layout_img/user_img.jpg" alt="#" />
+                    <img className="img-responsive rounded-circle" src={image} alt="#" />
                     <span className="name_user">{user.nom} {user.prenom}</span>
                   </a>
                   <div className="dropdown-menu">
-                    <a className="dropdown-item" href="/profile">My Profile</a>
-                    <a className="dropdown-item" href="/Setting">Settings</a>
+                    <a className="dropdown-item" href="/profile">Profile</a>
+                    <a className="dropdown-item" href="/Setting">Paramètre</a>
                     <a className="dropdown-item" onClick={logout} style={{ cursor: "pointer" }}>
-                      <span>Log Out</span> <i className="fa fa-sign-out"></i>
+                      <span>Déconnexion</span> <i className="fa fa-sign-out"></i>
                     </a>
                   </div>
                 </li>

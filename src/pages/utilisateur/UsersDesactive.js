@@ -1,34 +1,22 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useUsers from "../../hooks/utilisateur/useUsers"; 
-import UsersServices from "../../services/utilisateur/UsersService";
+import useUsers from "../../hooks/utilisateur/useUsers";
 import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 import Footer from "../templates/footer";
 
 function UsersList() {
-  const { users, setUsers } = useUsers();
+  const { users, updateUser } = useUsers();
   const navigate = useNavigate();
-  const [message, setMessage] = useState(null); // État pour afficher les messages de succès ou d'erreur
+  const [message, setMessage] = useState(null);
 
   const handleActiveUser = (userId) => {
-    UsersServices.update(userId, { active: 1 })
-      .then(() => {
-        setUsers(users.map(user => user._id === userId ? { ...user, active: 1 } : user));
-        setMessage({ type: "success", text: "Utilisateur activer avec succès." });
-        
-        // Faire disparaître le message après 3 secondes
-        setTimeout(() => {
-          setMessage(null);
-        }, 2000);
-      })
-      .catch((error) => {
-        setMessage({ type: "error", text: "Erreur lors de la suppression de l'utilisateur." });
-        console.error("Erreur lors de l'activation de l'utilisateur :", error);
-        setTimeout(() => {
-          setMessage(null);
-        }, 2000);
-      });
+    updateUser(userId, { active: 1 }, () => {
+      setMessage({ type: "success", text: "Utilisateur activé avec succès." });
+      setTimeout(() => {
+        setMessage(null);
+      }, 2000);
+    });
   };
 
   return (
@@ -47,7 +35,6 @@ function UsersList() {
                 </div>
               </div>
               
-              {/* Affichage du message */}
               {message && (
                 <div className={`alert ${message.type === "success" ? "alert-success" : "alert-danger"}`} role="alert">
                   {message.text}
@@ -58,7 +45,7 @@ function UsersList() {
                 <div className="white_shd full margin_bottom_30">
                   <div className="full graph_head">
                     <div className="heading1 margin_0">
-                      <h2>Liste des utilisateurs désactiver</h2>
+                      <h2>Liste des utilisateurs désactivés</h2>
                     </div>
                   </div>
                   <div className="table_section padding_infor_info">
@@ -74,9 +61,7 @@ function UsersList() {
                           </tr>
                         </thead>
                         <tbody>
-                          {users
-                          .filter(user => user.active === 0)
-                          .map((user) => (
+                          {users.filter(user => user.active === 0).map((user) => (
                             <tr key={user._id}>
                               <td>{user.nom}</td>
                               <td>{user.prenom}</td>
@@ -91,7 +76,7 @@ function UsersList() {
                                   : "Inconnu"}
                               </td>
                               <td>
-                                <button className="btn btn-danger btn-sm ml-2" onClick={() => handleActiveUser(user._id)}>Activer</button>
+                                <button className="btn btn-success btn-sm ml-2" onClick={() => handleActiveUser(user._id)}>Activer</button>
                               </td>
                             </tr>
                           ))}
