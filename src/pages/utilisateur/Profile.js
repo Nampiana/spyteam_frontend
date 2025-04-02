@@ -3,6 +3,8 @@ import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 import Footer from "../templates/footer";
 import useUsers from "../../hooks/utilisateur/useUsers";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 function Profile() {
   const [user, setUser] = useState({ nom: "", prenom: "", role: "", email: "", tel: "", adresse: "" });
@@ -30,17 +32,34 @@ function Profile() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const userId = JSON.parse(localStorage.getItem("user"))._id;
-    
-    try {
-      await updateUser(userId, user);
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      const updatedUser = { ...storedUser, ...user };
-      localStorage.setItem("user", JSON.stringify(updatedUser));
-      setMessage({ type: "success", text: "Profil mis à jour avec succès !" });
-    } catch (error) {
-      setMessage({ type: "error", text: "Erreur lors de la mise à jour du profil." });
-    }
+
+    // Confirmation popup before submitting the form
+    confirmAlert({
+      title: "Confirmation",
+      message: "Êtes-vous sûr de vouloir mettre à jour votre profil ?",
+      buttons: [
+        {
+          label: "Oui",
+          onClick: async () => {
+            const userId = JSON.parse(localStorage.getItem("user"))._id;
+
+            try {
+              await updateUser(userId, user);
+              const storedUser = JSON.parse(localStorage.getItem("user"));
+              const updatedUser = { ...storedUser, ...user };
+              localStorage.setItem("user", JSON.stringify(updatedUser));
+              setMessage({ type: "success", text: "Profil mis à jour avec succès !" });
+            } catch (error) {
+              setMessage({ type: "error", text: "Erreur lors de la mise à jour du profil." });
+            }
+          },
+        },
+        {
+          label: "Non",
+          onClick: () => {},
+        },
+      ],
+    });
   };
 
   return (
@@ -68,7 +87,7 @@ function Profile() {
                       </div>
                     </div>
                     <div className="full price_table padding_infor_info" style={{ padding: "30px" }}>
-                    {message.text && (
+                      {message.text && (
                         <div className={`alert ${message.type === "success" ? "alert-success" : "alert-danger"}`}>
                           {message.text}
                         </div>
@@ -91,17 +110,19 @@ function Profile() {
                                 <h3 style={{ color: '#333', fontSize: '28px', marginBottom: '15px', fontWeight: '700' }}>
                                   {user.nom} {user.prenom}
                                 </h3>
-                                <p style={{
-                                  background: user.role === 2 ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' :
-                                    user.role === 1 ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' :
-                                      'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
-                                  color: 'white',
-                                  padding: '5px 15px',
-                                  borderRadius: '20px',
-                                  display: 'inline-block',
-                                  fontWeight: '500',
-                                  marginBottom: '20px'
-                                }}>
+                                <p
+                                  style={{
+                                    background: user.role === 2 ? 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' :
+                                      user.role === 1 ? 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' :
+                                        'linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%)',
+                                    color: 'white',
+                                    padding: '5px 15px',
+                                    borderRadius: '20px',
+                                    display: 'inline-block',
+                                    fontWeight: '500',
+                                    marginBottom: '20px'
+                                  }}
+                                >
                                   <strong>Role: </strong>
                                   {user.role === 2 ? 'Superviseur' : user.role === 1 ? 'Admin' : 'Utilisateur'}
                                 </p>

@@ -1,8 +1,9 @@
-// src/pages/Setting.js
 import React, { useState } from "react";
 import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 import useAuth from "../../hooks/auth/useAuth";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 function Setting() {
   const [passwordCurrent, setPasswordCurrent] = useState("");
@@ -24,26 +25,42 @@ function Setting() {
       return;
     }
 
-    const userData = localStorage.getItem("user");
-    if (!userData) {
-      alert("Utilisateur non authentifié.");
-      return;
-    }
+    confirmAlert({
+      title: "Confirmation",
+      message: "Êtes-vous sûr de vouloir changer votre mot de passe ?",
+      buttons: [
+        {
+          label: "Oui",
+          onClick: async () => {
+            const userData = localStorage.getItem("user");
+            if (!userData) {
+              alert("Utilisateur non authentifié.");
+              return;
+            }
 
-    const parsedUserData = JSON.parse(userData);
-    if (!parsedUserData?._id) {
-      alert("ID utilisateur introuvable.");
-      return;
-    }
-    await updatePassword(parsedUserData._id, {
-      passwordCurrent,
-      password,
-      passwordConfirm,
+            const parsedUserData = JSON.parse(userData);
+            if (!parsedUserData?._id) {
+              alert("ID utilisateur introuvable.");
+              return;
+            }
+
+            await updatePassword(parsedUserData._id, {
+              passwordCurrent,
+              password,
+              passwordConfirm,
+            });
+
+            setPasswordCurrent("");
+            setPassword("");
+            setPasswordConfirm("");
+          },
+        },
+        {
+          label: "Non",
+          onClick: () => {},
+        },
+      ],
     });
-
-    setPasswordCurrent("");
-    setPassword("");
-    setPasswordConfirm("");
   };
 
   return (

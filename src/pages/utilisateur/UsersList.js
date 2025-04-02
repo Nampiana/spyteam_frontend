@@ -4,6 +4,8 @@ import useUsers from "../../hooks/utilisateur/useUsers";
 import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 import Footer from "../templates/footer";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css"; // Import the styles for the modal
 
 function UsersList() {
   const { users, setUsers, updateUser } = useUsers();
@@ -15,13 +17,29 @@ function UsersList() {
   };
 
   const handleDeleteUser = (userId) => {
-    updateUser(userId, { active: 0 }, () => {
-      setUsers(users.map(user => user._id === userId ? { ...user, active: 0 } : user));
-      setMessage({ type: "success", text: "Utilisateur supprimé avec succès." });
-
-      setTimeout(() => {
-        setMessage(null);
-      }, 2000);
+    confirmAlert({
+      title: "Confirmation",
+      message: "Êtes-vous sûr de vouloir supprimer cet utilisateur ?",
+      buttons: [
+        {
+          label: "Oui",
+          onClick: () => {
+            // Perform the user deletion action
+            updateUser(userId, { active: 0 }, () => {
+              setUsers(users.map(user => user._id === userId ? { ...user, active: 0 } : user));
+              setMessage({ type: "success", text: "Utilisateur supprimé avec succès." });
+              
+              setTimeout(() => {
+                setMessage(null);
+              }, 2000);
+            });
+          },
+        },
+        {
+          label: "Non",
+          onClick: () => {},
+        },
+      ],
     });
   };
 
@@ -40,7 +58,7 @@ function UsersList() {
                   </div>
                 </div>
               </div>
-              
+
               {message && (
                 <div className={`alert ${message.type === "success" ? "alert-success" : "alert-danger"}`} role="alert">
                   {message.text}
@@ -68,28 +86,28 @@ function UsersList() {
                         </thead>
                         <tbody>
                           {users
-                          .filter(user => user.active === 1)
-                          .map((user) => (
-                            <tr key={user._id}>
-                              <td>{user.nom}</td>
-                              <td>{user.prenom}</td>
-                              <td>{user.email}</td>
-                              <td>
-                                {user.role === 1
-                                  ? "Admin"
-                                  : user.role === 2
-                                  ? "Superviseur"
-                                  : user.role === 3
-                                  ? "Client"
-                                  : "Inconnu"}
-                              </td>
-                              <td>
-                                <button className="btn btn-primary btn-sm" onClick={() => navigate(`/edit-user/${user._id}`)}>Modifier</button>
-                                <button className="btn btn-success btn-sm ml-2">Télécharger</button>
-                                <button className="btn btn-danger btn-sm ml-2" onClick={() => handleDeleteUser(user._id)}>Supprimer</button>
-                              </td>
-                            </tr>
-                          ))}
+                            .filter(user => user.active === 1)
+                            .map((user) => (
+                              <tr key={user._id}>
+                                <td>{user.nom}</td>
+                                <td>{user.prenom}</td>
+                                <td>{user.email}</td>
+                                <td>
+                                  {user.role === 1
+                                    ? "Admin"
+                                    : user.role === 2
+                                    ? "Superviseur"
+                                    : user.role === 3
+                                    ? "Client"
+                                    : "Inconnu"}
+                                </td>
+                                <td>
+                                  <button className="btn btn-primary btn-sm" onClick={() => navigate(`/edit-user/${user._id}`)}>Modifier</button>
+                                  <button className="btn btn-success btn-sm ml-2">Télécharger</button>
+                                  <button className="btn btn-danger btn-sm ml-2" onClick={() => handleDeleteUser(user._id)}>Supprimer</button>
+                                </td>
+                              </tr>
+                            ))}
                         </tbody>
                       </table>
                     </div>

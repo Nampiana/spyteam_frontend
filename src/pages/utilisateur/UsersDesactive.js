@@ -4,6 +4,8 @@ import useUsers from "../../hooks/utilisateur/useUsers";
 import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 import Footer from "../templates/footer";
+import { confirmAlert } from "react-confirm-alert";
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 function UsersList() {
   const { users, updateUser } = useUsers();
@@ -11,11 +13,27 @@ function UsersList() {
   const [message, setMessage] = useState(null);
 
   const handleActiveUser = (userId) => {
-    updateUser(userId, { active: 1 }, () => {
-      setMessage({ type: "success", text: "Utilisateur activé avec succès." });
-      setTimeout(() => {
-        setMessage(null);
-      }, 2000);
+    // Show confirmation alert before activating the user
+    confirmAlert({
+      title: "Confirmation",
+      message: "Êtes-vous sûr de vouloir activer cet utilisateur ?",
+      buttons: [
+        {
+          label: "Oui",
+          onClick: () => {
+            updateUser(userId, { active: 1 }, () => {
+              setMessage({ type: "success", text: "Utilisateur activé avec succès." });
+              setTimeout(() => {
+                setMessage(null);
+              }, 2000);
+            });
+          },
+        },
+        {
+          label: "Non",
+          onClick: () => {},
+        },
+      ],
     });
   };
 
