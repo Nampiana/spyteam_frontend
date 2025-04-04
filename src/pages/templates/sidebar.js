@@ -65,9 +65,14 @@ function Sidebar() {
               </Link>
             </li>
           )}
-          <li>
-              <Link to="/usage/list">
+           <li>
+              <Link to="/surveillance">
                 <i className="fa fa-table purple_color2"></i> <span>Surveillance</span>
+              </Link>
+            </li>
+            <li>
+              <Link to="/historique">
+                <i className="fa fa-table purple_color2"></i> <span>Historiques</span>
               </Link>
             </li>
         </ul>

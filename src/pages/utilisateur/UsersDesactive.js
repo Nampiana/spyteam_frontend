@@ -11,9 +11,10 @@ function UsersList() {
   const { users, updateUser } = useUsers();
   const navigate = useNavigate();
   const [message, setMessage] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 5;
 
   const handleActiveUser = (userId) => {
-    // Show confirmation alert before activating the user
     confirmAlert({
       title: "Confirmation",
       message: "Êtes-vous sûr de vouloir activer cet utilisateur ?",
@@ -37,6 +38,26 @@ function UsersList() {
     });
   };
 
+  // Filtrer les utilisateurs désactivés
+  const inactiveUsers = users.filter(user => user.active === 0);
+  const totalPages = Math.ceil(inactiveUsers.length / usersPerPage);
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = inactiveUsers.slice(indexOfFirstUser, indexOfLastUser);
+
+  // Changer de page
+  const goToNextPage = () => {
+    if (currentPage < totalPages) {
+      setCurrentPage(currentPage + 1);
+    }
+  };
+
+  const goToPrevPage = () => {
+    if (currentPage > 1) {
+      setCurrentPage(currentPage - 1);
+    }
+  };
+
   return (
     <div className="full_container">
       <div className="inner_container">
@@ -48,7 +69,7 @@ function UsersList() {
               <div className="row column_title">
                 <div className="col-md-12">
                   <div className="page_title">
-                    <h2>Utilisateurs</h2>
+                    <h2>Utilisateurs désactivés</h2>
                   </div>
                 </div>
               </div>
@@ -79,7 +100,7 @@ function UsersList() {
                           </tr>
                         </thead>
                         <tbody>
-                          {users.filter(user => user.active === 0).map((user) => (
+                          {currentUsers.map((user) => (
                             <tr key={user._id}>
                               <td>{user.nom}</td>
                               <td>{user.prenom}</td>
@@ -100,6 +121,17 @@ function UsersList() {
                           ))}
                         </tbody>
                       </table>
+                    </div>
+                    
+                    {/* Pagination */}
+                    <div className="d-flex justify-content-between align-items-center mt-3">
+                      <button className="btn btn-secondary btn-sm" onClick={goToPrevPage} disabled={currentPage === 1}>
+                        Précédent
+                      </button>
+                      <span>Page {currentPage} sur {totalPages}</span>
+                      <button className="btn btn-secondary btn-sm" onClick={goToNextPage} disabled={currentPage === totalPages}>
+                        Suivant
+                      </button>
                     </div>
                   </div>
                 </div>

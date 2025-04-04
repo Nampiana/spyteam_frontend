@@ -1,13 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import io from "socket.io-client";
 import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 import Footer from "../templates/footer";
-import UsersServices from "../../services/utilisateur/UsersService"; // Import du service utilisateur
+import UsersServices from "../../services/utilisateur/UsersService";
 
-const UsageListPage = () => {
+const Surveillance = () => {
   const [clients, setClients] = useState({});
-  const [users, setUsers] = useState({}); // Stocker les infos des utilisateurs
+  const [users, setUsers] = useState({});
+  const usersCache = useRef({}); // Cache pour éviter les requêtes multiples
   const [fullscreenClientId, setFullscreenClientId] = useState(null);
 
   useEffect(() => {
@@ -23,8 +24,10 @@ const UsageListPage = () => {
           [data.clientId]: imageUrl,
         }));
 
-        // Récupérer les détails de l'utilisateur
-        fetchUserDetails(data.clientId);
+        // Récupérer les détails de l'utilisateur seulement si non déjà en cache
+        if (!usersCache.current[data.clientId]) {
+          fetchUserDetails(data.clientId);
+        }
       } catch (e) {
         console.error("Erreur lors du traitement du flux vidéo", e);
       }
@@ -36,17 +39,16 @@ const UsageListPage = () => {
   }, []);
 
   const fetchUserDetails = async (clientId) => {
-    if (!users[clientId]) { // Éviter les requêtes inutiles si on a déjà les données
-      try {
-        const response = await UsersServices.getOne(clientId);
-        console.log("Utilisateur récupéré:", response.data.data);
-        setUsers((prevUsers) => ({
-          ...prevUsers,
-          [clientId]: response.data.data, // Stocker l'utilisateur récupéré
-        }));
-      } catch (error) {
-        console.error("Erreur lors de la récupération de l'utilisateur", error);
-      }
+    try {
+      const response = await UsersServices.getOne(clientId);
+      const userData = response.data.data;
+      usersCache.current[clientId] = userData; // Ajouter au cache
+      setUsers((prevUsers) => ({
+        ...prevUsers,
+        [clientId]: userData,
+      }));
+    } catch (error) {
+      console.error("Erreur lors de la récupération de l'utilisateur", error);
     }
   };
 
@@ -81,13 +83,23 @@ const UsageListPage = () => {
                               <img
                                 src={imageUrl}
                                 alt={`Client ${clientId}`}
-                                style={{ width: "100%", height: "300px", objectFit: "cover", border: "solid black 2px", cursor: "pointer" }}
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "contain",
+                                  border: "solid black 2px",
+                                  cursor: "pointer",
+                                }}
                                 onClick={() => setFullscreenClientId(clientId)}
                               />
                             </div>
                             {/* Affichage du nom et prénom sous l'image */}
                             <div className="heading_section">
-                              <h4>{users[clientId] ? `${users[clientId].nom} ${users[clientId].prenom}` : "Chargement..."}</h4>
+                              <h4>
+                                {usersCache.current[clientId]
+                                  ? `${usersCache.current[clientId].nom} ${usersCache.current[clientId].prenom}`
+                                  : "Chargement..."}
+                              </h4>
                             </div>
                           </div>
                         ))}
@@ -130,4 +142,4 @@ const UsageListPage = () => {
   );
 };
 
-export default UsageListPage;
+export default Surveillance;

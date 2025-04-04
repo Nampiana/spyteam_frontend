@@ -6,6 +6,8 @@ import UsersDesactive from "./pages/utilisateur/UsersDesactive";
 import CreateUser from "./pages/utilisateur/CreateUser";
 import UserEdit from "./pages/utilisateur/UserEdit";
 import UsageListPage from "./pages/usage/UsageListePage";
+import Historique from "./pages/usage/Historique";
+import Surveillance from "./pages/usage/Surveillance";
 import HomePage from "./pages/auth/HomePage";
 import Login from './pages/auth/Login';
 import Profile from './pages/utilisateur/Profile';
@@ -30,6 +32,8 @@ function App() {
 
           {/* routes supervisserur */}
           <Route path="/usage/list" element={<UsageListPage />} />
+          <Route path="/historique" element={<Historique />} />
+          <Route path="/surveillance" element={<Surveillance />} />
         </Routes>
       </AuthProvider>
     </Router>
