@@ -27,22 +27,33 @@ function CreateUser() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (formData.password !== formData.passwordConfirm) {
       setError("Les mots de passe ne correspondent pas.");
       return;
     }
-
-    setError("");
-
-    // Appel de la fonction createUser
-    createUser(formData, () => {
-      console.log("Utilisateur créé avec succès !");
-      navigate("/users"); // Redirection après création
-    });
+  
+    setError(""); // Reset des erreurs
+  
+    try {
+      await createUser(formData, () => {
+        console.log("✅ Utilisateur créé avec succès !");
+        navigate("/users");
+      });
+    } catch (err) {
+      console.error("Erreur création utilisateur :", err);
+  
+      // Si tu veux afficher un message spécifique de l'API (ex : email déjà utilisé)
+      if (err.response && err.response.data && err.response.data.message) {
+        setError(err.response.data.message);
+      } else {
+        setError("Une erreur est survenue. Veuillez réessayer.");
+      }
+    }
   };
+  
 
   return (
     <div className="full_container">
@@ -71,27 +82,27 @@ function CreateUser() {
                     <form onSubmit={handleSubmit}>
                       <div className="form-group">
                         <label>Nom</label>
-                        <input type="text" name="nom"  className="form-control" onChange={handleChange} required />
+                        <input type="text" name="nom" className="form-control" onChange={handleChange} required />
                       </div>
                       <div className="form-group">
                         <label>Prénom</label>
-                        <input type="text" name="prenom"  className="form-control" onChange={handleChange} required />
+                        <input type="text" name="prenom" className="form-control" onChange={handleChange} required />
                       </div>
                       <div className="form-group">
                         <label>Email</label>
-                        <input type="email" name="email"  className="form-control" onChange={handleChange} required />
+                        <input type="email" name="email" className="form-control" onChange={handleChange} required />
                       </div>
                       <div className="form-group">
                         <label>Téléphone</label>
-                        <input type="tel" name="tel"  className="form-control" onChange={handleChange} required />
+                        <input type="tel" name="tel" className="form-control" onChange={handleChange} required />
                       </div>
                       <div className="form-group">
                         <label>Adresse</label>
-                        <input type="text" name="adresse"  className="form-control" onChange={handleChange} required />
+                        <input type="text" name="adresse" className="form-control" onChange={handleChange} required />
                       </div>
                       <div className="form-group">
                         <label>Rôle</label>
-                        <select name="role"  className="form-control" onChange={handleChange} required>
+                        <select name="role" className="form-control" onChange={handleChange} required>
                           <option value="">Sélectionner un rôle</option>
                           <option value="1">Admin</option>
                           <option value="2">Superviseur</option>
@@ -100,11 +111,11 @@ function CreateUser() {
                       </div>
                       <div className="form-group">
                         <label>Mot de passe</label>
-                        <input type="password" name="password"  className="form-control" onChange={handleChange} required />
+                        <input type="password" name="password" className="form-control" onChange={handleChange} required />
                       </div>
                       <div className="form-group">
                         <label>Confirmer le mot de passe</label>
-                        <input type="password" name="passwordConfirm"  className="form-control" onChange={handleChange} required />
+                        <input type="password" name="passwordConfirm" className="form-control" onChange={handleChange} required />
                       </div>
                       <button type="submit" className="btn btn-success">Créer</button>
                     </form>

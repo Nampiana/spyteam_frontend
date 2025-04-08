@@ -8,11 +8,13 @@ import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css"; // Import the styles for the modal
 
 function UsersList() {
-  const { users, setUsers, updateUser } = useUsers();
+  const { users, setUsers, updateUser, generateFile, getOneUser } = useUsers();
   const navigate = useNavigate();
   const [message, setMessage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 5;
+
+  const [isBuilding, setIsBuilding] = useState(false);
 
   const navigateToCreateUser = () => {
     navigate("/create-user");
@@ -38,15 +40,56 @@ function UsersList() {
         },
         {
           label: "Non",
-          onClick: () => {},
+          onClick: () => { },
         },
       ],
     });
   };
 
+  /* const handleGenerateFile = (userId) => {
+   console.log(`Générer le fichier pour l'utilisateur avec ID: ${userId}`);
+   const data = {
+     clientId: userId,
+   };
+   generateFile(data);
+ }*/
+
+   const handleGenerateFile = (userId) => {
+    if (isBuilding) return;
+    console.log(`Générer le fichier pour l'utilisateur avec ID: ${userId}`);
+  
+    // Mettre l'état local en "building"
+    setIsBuilding(true);
+    setUsers(users.map(user =>
+      user._id === userId ? { ...user, buildStatus: "building" } : user
+    ));
+  
+    // 🛠️ Mise à jour réelle dans la base de données
+    updateUser(userId, { buildStatus: "building" }, () => {
+      // Ensuite, on lance la génération du fichier
+      const data = { clientId: userId };
+      generateFile(data);
+  
+      const intervalId = setInterval(() => {
+        getOneUser(userId, (userData) => {
+          if (userData?.data?.buildStatus === "done") {
+            clearInterval(intervalId);
+            setIsBuilding(false);
+            setUsers(users.map(user =>
+              user._id === userId ? { ...user, buildStatus: "done" } : user
+            ));
+          }
+        });
+      }, 5000);
+    });
+  };
+  
+
+
+
   // Filtrer les utilisateurs actifs
   const activeUsers = users.filter(user => user.active === 1);
-  
+
   // Pagination
   const totalPages = Math.ceil(activeUsers.length / usersPerPage);
   const indexOfLastUser = currentPage * usersPerPage;
@@ -117,15 +160,51 @@ function UsersList() {
                                 {user.role === 1
                                   ? "Admin"
                                   : user.role === 2
-                                  ? "Superviseur"
-                                  : user.role === 3
-                                  ? "Client"
-                                  : "Inconnu"}
+                                    ? "Superviseur"
+                                    : user.role === 3
+                                      ? "Client"
+                                      : "Inconnu"}
                               </td>
                               <td>
                                 <button className="btn btn-primary btn-sm" onClick={() => navigate(`/edit-user/${user._id}`)}>Modifier</button>
-                                <button className="btn btn-success btn-sm ml-2">Télécharger</button>
                                 <button className="btn btn-danger btn-sm ml-2" onClick={() => handleDeleteUser(user._id)}>Supprimer</button>
+                                {user.buildStatus === "idle" && (
+                                  <button
+                                    style={{ width: "100px" }}
+                                    className="btn btn-success btn-sm ml-2"
+                                    onClick={() => handleGenerateFile(user._id)}
+                                    disabled={isBuilding} 
+                                  >
+                                    Générer
+                                  </button>
+                                )}
+
+                                {user.buildStatus === "building" && (
+                                  <button
+                                    style={{ width: "100px" }}
+                                    className="btn btn-warning btn-sm ml-2"
+                                    disabled
+                                  >
+                                    <span
+                                      className="spinner-border spinner-border-sm mr-1"
+                                      role="status"
+                                      aria-hidden="true"
+                                    ></span>
+                                    En cours...
+                                  </button>
+                                )}
+
+                                {user.buildStatus === "done" && (
+                                  <button
+                                    style={{ width: "100px" }}
+                                    className="btn btn-secondary btn-sm ml-2"
+                                    onClick={() =>
+                                      (window.location.href = `http://localhost:4000/download/${user._id}`)
+                                    }
+                                  >
+                                    Télécharger
+                                  </button>
+                                )}
                               </td>
                             </tr>
                           ))}

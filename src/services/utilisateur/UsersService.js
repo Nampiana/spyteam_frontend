@@ -38,8 +38,16 @@ class UsersServices {
     return axios.get(`${ApiUrl}utilisateur/${id}`, { headers: header("json").headers });
   }
 
+  getOne(id) {
+    return axios.get(`${ApiUrl}utilisateur/${id}`, { headers: header("json").headers });
+  }
+
   create(data) {
     return axios.post(`${ApiUrl}utilisateur`, data, { headers: header("json").headers });
+  }
+
+  generateFile(data) {
+    return axios.post(`${ApiUrl}utilisateur/generatefile`, data, { headers: header("json").headers });
   }
 
   update(id, data) {

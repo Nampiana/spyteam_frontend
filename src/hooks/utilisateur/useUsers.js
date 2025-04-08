@@ -7,7 +7,7 @@ function useUsers() {
   function fetchUsers() {
     UsersServices.getAll()
       .then((res) => {
-        console.log("Données reçues :", res.data); // Vérifie la structure
+        // console.log("Données reçues :", res.data); // Vérifie la structure
         if (Array.isArray(res.data.data)) {
           setUsers(res.data.data); // Assurez-vous de récupérer le tableau
         } else {
@@ -22,10 +22,27 @@ function useUsers() {
     fetchUsers();
   }, []);
 
+  const getOneUser = (id, callback = () => {}) => {
+    UsersServices.getOne(id)
+      .then((res) => {
+        callback(res.data);
+      })
+      .catch((err) => console.error(err));
+  };
+  
+
   const createUser = (data, callback = () => {}) => {
     UsersServices.create(data)
       .then(() => {
         fetchUsers();
+        callback();
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const generateFile = (data, callback = () => {}) => {
+    UsersServices.generateFile(data)
+      .then(() => {
         callback();
       })
       .catch((err) => console.error(err));
@@ -49,7 +66,7 @@ function useUsers() {
       .catch((err) => console.error(err));
   };
 
-  return { users, createUser, updateUser, deleteUser, setUsers };
+  return { users, createUser, updateUser, deleteUser, setUsers, generateFile, getOneUser };
 }
 
 export default useUsers;
