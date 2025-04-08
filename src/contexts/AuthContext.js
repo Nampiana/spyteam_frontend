@@ -43,7 +43,7 @@ export const AuthProvider = ({ children }) => {
       if (userData.role === 1) {
         navigate('/users');
       } else if (userData.role === 2) {
-        navigate('/usage/list');
+        navigate('/surveillance');
       } else {
         navigate('/');
       }
