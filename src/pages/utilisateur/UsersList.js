@@ -1,11 +1,11 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useUsers from "../../hooks/utilisateur/useUsers";
 import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 import Footer from "../templates/footer";
 import { confirmAlert } from "react-confirm-alert";
-import "react-confirm-alert/src/react-confirm-alert.css"; // Import the styles for the modal
+import "react-confirm-alert/src/react-confirm-alert.css";
 
 function UsersList() {
   const { users, setUsers, updateUser, generateFile, getOneUser } = useUsers();
@@ -14,7 +14,42 @@ function UsersList() {
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 5;
 
-  const [isBuilding, setIsBuilding] = useState(false);
+  const [isBuilding, setIsBuilding] = useState(
+    localStorage.getItem("isBuilding") === "true"
+  );
+
+  // Met à jour le localStorage à chaque changement
+  useEffect(() => {
+    localStorage.setItem("isBuilding", isBuilding);
+  }, [isBuilding]);
+
+  // ⚠️ Vérifie au mount si un build est en cours
+  useEffect(() => {
+    const buildingUserId = localStorage.getItem("buildingUserId");
+    if (isBuilding && buildingUserId) {
+      const intervalId = setInterval(() => {
+        getOneUser(buildingUserId, (userData) => {
+          if (userData?.data?.buildStatus === "done") {
+            clearInterval(intervalId);
+            setIsBuilding(false);
+            localStorage.setItem("isBuilding", "false");
+            localStorage.removeItem("buildingUserId");
+
+            // Met à jour localement l'utilisateur
+            setUsers((prevUsers) =>
+              prevUsers.map((user) =>
+                user._id === buildingUserId
+                  ? { ...user, buildStatus: "done" }
+                  : user
+              )
+            );
+          }
+        });
+      }, 5000);
+
+      return () => clearInterval(intervalId); // Nettoyage si le composant démonte
+    }
+  }, [isBuilding, getOneUser, setUsers]);
 
   const navigateToCreateUser = () => {
     navigate("/create-user");
@@ -29,8 +64,15 @@ function UsersList() {
           label: "Oui",
           onClick: () => {
             updateUser(userId, { active: 0 }, () => {
-              setUsers(users.map(user => user._id === userId ? { ...user, active: 0 } : user));
-              setMessage({ type: "success", text: "Utilisateur supprimé avec succès." });
+              setUsers((prevUsers) =>
+                prevUsers.map((user) =>
+                  user._id === userId ? { ...user, active: 0 } : user
+                )
+              );
+              setMessage({
+                type: "success",
+                text: "Utilisateur supprimé avec succès.",
+              });
 
               setTimeout(() => {
                 setMessage(null);
@@ -40,63 +82,55 @@ function UsersList() {
         },
         {
           label: "Non",
-          onClick: () => { },
         },
       ],
     });
   };
 
-  /* const handleGenerateFile = (userId) => {
-   console.log(`Générer le fichier pour l'utilisateur avec ID: ${userId}`);
-   const data = {
-     clientId: userId,
-   };
-   generateFile(data);
- }*/
-
-   const handleGenerateFile = (userId) => {
+  const handleGenerateFile = (userId) => {
     if (isBuilding) return;
-    console.log(`Générer le fichier pour l'utilisateur avec ID: ${userId}`);
-  
-    // Mettre l'état local en "building"
+
     setIsBuilding(true);
-    setUsers(users.map(user =>
-      user._id === userId ? { ...user, buildStatus: "building" } : user
-    ));
-  
-    // 🛠️ Mise à jour réelle dans la base de données
+    localStorage.setItem("isBuilding", "true");
+    localStorage.setItem("buildingUserId", userId);
+
+    setUsers((prevUsers) =>
+      prevUsers.map((user) =>
+        user._id === userId ? { ...user, buildStatus: "building" } : user
+      )
+    );
+
     updateUser(userId, { buildStatus: "building" }, () => {
-      // Ensuite, on lance la génération du fichier
       const data = { clientId: userId };
       generateFile(data);
-  
+
       const intervalId = setInterval(() => {
         getOneUser(userId, (userData) => {
           if (userData?.data?.buildStatus === "done") {
             clearInterval(intervalId);
             setIsBuilding(false);
-            setUsers(users.map(user =>
-              user._id === userId ? { ...user, buildStatus: "done" } : user
-            ));
+            localStorage.setItem("isBuilding", "false");
+            localStorage.removeItem("buildingUserId");
+
+            setUsers((prevUsers) =>
+              prevUsers.map((user) =>
+                user._id === userId
+                  ? { ...user, buildStatus: "done" }
+                  : user
+              )
+            );
           }
         });
       }, 5000);
     });
   };
-  
 
-
-
-  // Filtrer les utilisateurs actifs
-  const activeUsers = users.filter(user => user.active === 1);
-
-  // Pagination
+  const activeUsers = users.filter((user) => user.active === 1);
   const totalPages = Math.ceil(activeUsers.length / usersPerPage);
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = activeUsers.slice(indexOfFirstUser, indexOfLastUser);
 
-  // Changer de page
   const goToNextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
@@ -126,7 +160,14 @@ function UsersList() {
               </div>
 
               {message && (
-                <div className={`alert ${message.type === "success" ? "alert-success" : "alert-danger"}`} role="alert">
+                <div
+                  className={`alert ${
+                    message.type === "success"
+                      ? "alert-success"
+                      : "alert-danger"
+                  }`}
+                  role="alert"
+                >
                   {message.text}
                 </div>
               )}
@@ -160,25 +201,40 @@ function UsersList() {
                                 {user.role === 1
                                   ? "Admin"
                                   : user.role === 2
-                                    ? "Superviseur"
-                                    : user.role === 3
-                                      ? "Client"
-                                      : "Inconnu"}
+                                  ? "Superviseur"
+                                  : user.role === 3
+                                  ? "Client"
+                                  : "Inconnu"}
                               </td>
                               <td>
-                                <button className="btn btn-primary btn-sm" onClick={() => navigate(`/edit-user/${user._id}`)}>Modifier</button>
-                                <button className="btn btn-danger btn-sm ml-2" onClick={() => handleDeleteUser(user._id)}>Supprimer</button>
+                                <button
+                                  className="btn btn-primary btn-sm"
+                                  onClick={() =>
+                                    navigate(`/edit-user/${user._id}`)
+                                  }
+                                >
+                                  Modifier
+                                </button>
+                                <button
+                                  className="btn btn-danger btn-sm ml-2"
+                                  onClick={() => handleDeleteUser(user._id)}
+                                >
+                                  Supprimer
+                                </button>
+
+                                {/* Générer */}
                                 {user.buildStatus === "idle" && (
                                   <button
                                     style={{ width: "100px" }}
                                     className="btn btn-success btn-sm ml-2"
                                     onClick={() => handleGenerateFile(user._id)}
-                                    disabled={isBuilding} 
+                                    disabled={isBuilding}
                                   >
                                     Générer
                                   </button>
                                 )}
 
+                                {/* En cours */}
                                 {user.buildStatus === "building" && (
                                   <button
                                     style={{ width: "100px" }}
@@ -194,12 +250,13 @@ function UsersList() {
                                   </button>
                                 )}
 
+                                {/* Télécharger */}
                                 {user.buildStatus === "done" && (
                                   <button
                                     style={{ width: "100px" }}
                                     className="btn btn-secondary btn-sm ml-2"
                                     onClick={() =>
-                                      (window.location.href = `http://localhost:4000/download/${user._id}`)
+                                      (window.location.href = `${process.env.REACT_APP_API_URL_DOWNLOAD_FILE}/download/${user._id}`)
                                     }
                                   >
                                     Télécharger
@@ -212,26 +269,37 @@ function UsersList() {
                       </table>
                     </div>
 
-                    {/* Pagination */}
                     <div className="d-flex justify-content-between align-items-center mt-3">
-                      <button className="btn btn-secondary btn-sm" onClick={goToPrevPage} disabled={currentPage === 1}>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={goToPrevPage}
+                        disabled={currentPage === 1}
+                      >
                         Précédent
                       </button>
-                      <span>Page {currentPage} sur {totalPages}</span>
-                      <button className="btn btn-secondary btn-sm" onClick={goToNextPage} disabled={currentPage === totalPages}>
+                      <span>
+                        Page {currentPage} sur {totalPages}
+                      </span>
+                      <button
+                        className="btn btn-secondary btn-sm"
+                        onClick={goToNextPage}
+                        disabled={currentPage === totalPages}
+                      >
                         Suivant
                       </button>
                     </div>
 
                     <div className="text-center mt-3">
-                      <button className="btn btn-success btn-sm" onClick={navigateToCreateUser}>
+                      <button
+                        className="btn btn-success btn-sm"
+                        onClick={navigateToCreateUser}
+                      >
                         Créer Utilisateur
                       </button>
                     </div>
                   </div>
                 </div>
               </div>
-
             </div>
           </div>
         </div>
