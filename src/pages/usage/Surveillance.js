@@ -28,7 +28,7 @@ const Surveillance = () => {
   }, []);
 
   useEffect(() => {
-    const socket = io("http://192.168.1.177:4000");
+    const socket = io(`${process.env.REACT_APP_API_SOCKET}`);
 
     socket.on("videoStream", async (data) => {
       try {

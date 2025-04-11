@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import UsersServices from "../../services/utilisateur/UsersService";
+import useConfiguration from "../../hooks/configuration/useConfiguration";
 import Sidebar from "../templates/sidebar";
 import Topbar from "../templates/topbar";
 import { confirmAlert } from "react-confirm-alert";
@@ -11,6 +12,9 @@ function UserEdit() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [message, setMessage] = useState({ type: "", text: "" }); // État pour le message de validation
+
+  const userId = user?._id;
+  const { config, updateConfig, setConfig } = useConfiguration(userId);
 
   useEffect(() => {
     UsersServices.getOne(id)
@@ -43,18 +47,21 @@ function UserEdit() {
           onClick: () => {
             UsersServices.update(id, user)
               .then(() => {
-                setMessage({ type: "success", text: "Utilisateur modifié avec succès !" });
-                setTimeout(() => navigate("/users"), 2000); // Redirection après 2 secondes
+                updateConfig(config, () => {
+                  setMessage({ type: "success", text: "Utilisateur et configuration modifiés avec succès !" });
+                  setTimeout(() => navigate("/users"), 2000);
+                });
               })
               .catch((err) => {
                 console.error("Erreur lors de la mise à jour :", err);
-                setMessage({ type: "error", text: "Erreur lors de la modification de l'utilisateur." });
+                setMessage({ type: "error", text: "Erreur lors de la modification." });
               });
-          },
+          }
+          
         },
         {
           label: "Non",
-          onClick: () => {},
+          onClick: () => { },
         },
       ],
     });
@@ -155,6 +162,67 @@ function UserEdit() {
                           <option value={2}>Superviseur</option>
                           <option value={3}>Client</option>
                         </select>
+                      </div>
+                      <div className="form-group">
+                        <label>Statut du build</label>
+                        <select
+                          name="buildStatus"
+                          className="form-control"
+                          value={user.buildStatus || "idle"}
+                          onChange={handleChange}
+                        >
+                          <option value="idle">En attente</option>
+                          <option value="building">En cours</option>
+                          <option value="done">Terminé</option>
+                        </select>
+                      </div>
+                      <hr />
+                      <h4>Configuration Vidéo/Image</h4>
+
+                      <div className="form-group">
+                        <label>Résolution</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={config?.resolution || ""}
+                          onChange={(e) => setConfig({ ...config, resolution: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>FPS Vidéo</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={config?.fpsVideo || ""}
+                          onChange={(e) => setConfig({ ...config, fpsVideo: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Qualité Vidéo</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={config?.qualiteVideo || ""}
+                          onChange={(e) => setConfig({ ...config, qualiteVideo: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>FPS Image</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={config?.fpsImage || ""}
+                          onChange={(e) => setConfig({ ...config, fpsImage: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Qualité Image</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={config?.qualiteImage || ""}
+                          onChange={(e) => setConfig({ ...config, qualiteImage: e.target.value })}
+                        />
                       </div>
                       <button type="submit" className="btn btn-primary">
                         Mettre à jour

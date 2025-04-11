@@ -1,4 +1,4 @@
-export const ApiUrl =  "http://localhost:4000/api/v1/";
+export const ApiUrl =  `${process.env.REACT_APP_API_URL}`;
 
 /*export const header = (type = "json") => {
     const token = localStorage.getItem("access_token");
