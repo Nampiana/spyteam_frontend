@@ -178,16 +178,6 @@ function UserEdit() {
                       </div>
                       <hr />
                       <h4>Configuration Vidéo/Image</h4>
-
-                      <div className="form-group">
-                        <label>Résolution</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={config?.resolution || ""}
-                          onChange={(e) => setConfig({ ...config, resolution: e.target.value })}
-                        />
-                      </div>
                       <div className="form-group">
                         <label>FPS Vidéo</label>
                         <input
@@ -222,6 +212,15 @@ function UserEdit() {
                           className="form-control"
                           value={config?.qualiteImage || ""}
                           onChange={(e) => setConfig({ ...config, qualiteImage: e.target.value })}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Timeout</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={config?.timeout || ""}
+                          onChange={(e) => setConfig({ ...config, timeout: e.target.value })}
                         />
                       </div>
                       <button type="submit" className="btn btn-primary">
