@@ -57,6 +57,11 @@ class UsersServices {
   delete(id) {
     return axios.delete(`${ApiUrl}utilisateur/${id}`, { headers: header("json").headers });
   }
+
+  checkBuildStatus() {
+    return axios.get(`${ApiUrl}build-status`, { headers: header("json").headers });
+  }
+  
 }
 
 export default new UsersServices();

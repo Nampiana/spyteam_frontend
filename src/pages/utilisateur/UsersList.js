@@ -8,15 +8,13 @@ import { confirmAlert } from "react-confirm-alert";
 import "react-confirm-alert/src/react-confirm-alert.css";
 
 function UsersList() {
-  const { users, setUsers, updateUser, generateFile, getOneUser } = useUsers();
+  const { users, setUsers, updateUser, generateFile, getOneUser, checkBuildStatus } = useUsers();
   const navigate = useNavigate();
   const [message, setMessage] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const usersPerPage = 5;
 
-  const [isBuilding, setIsBuilding] = useState(
-    localStorage.getItem("isBuilding") === "true"
-  );
+  const [isBuilding, setIsBuilding] = useState(false);
 
   // Met à jour le localStorage à chaque changement
   useEffect(() => {
@@ -25,31 +23,20 @@ function UsersList() {
 
   // ⚠️ Vérifie au mount si un build est en cours
   useEffect(() => {
-    const buildingUserId = localStorage.getItem("buildingUserId");
-    if (isBuilding && buildingUserId) {
-      const intervalId = setInterval(() => {
-        getOneUser(buildingUserId, (userData) => {
-          if (userData?.data?.buildStatus === "done") {
-            clearInterval(intervalId);
-            setIsBuilding(false);
-            localStorage.setItem("isBuilding", "false");
-            localStorage.removeItem("buildingUserId");
-
-            // Met à jour localement l'utilisateur
-            setUsers((prevUsers) =>
-              prevUsers.map((user) =>
-                user._id === buildingUserId
-                  ? { ...user, buildStatus: "done" }
-                  : user
-              )
-            );
-          }
-        });
-      }, 5000);
-
-      return () => clearInterval(intervalId); // Nettoyage si le composant démonte
-    }
-  }, [isBuilding, getOneUser, setUsers]);
+    const fetchBuildStatus = () => {
+      checkBuildStatus((serverIsBuilding) => {
+        console.log("Build status from server:", serverIsBuilding);
+        setIsBuilding(serverIsBuilding);
+      });
+    };
+  
+    fetchBuildStatus(); // au démarrage
+  
+    const interval = setInterval(fetchBuildStatus, 5000); // polling
+  
+    return () => clearInterval(interval);
+  }, []);
+  
 
   const navigateToCreateUser = () => {
     navigate("/create-user");
@@ -111,11 +98,12 @@ function UsersList() {
             setIsBuilding(false);
             localStorage.setItem("isBuilding", "false");
             localStorage.removeItem("buildingUserId");
-
+        
+            // Met à jour toutes les infos du user
             setUsers((prevUsers) =>
               prevUsers.map((user) =>
                 user._id === userId
-                  ? { ...user, buildStatus: "done" }
+                  ? { ...user, ...userData.data }
                   : user
               )
             );

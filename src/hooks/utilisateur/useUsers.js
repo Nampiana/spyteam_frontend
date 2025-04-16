@@ -66,7 +66,19 @@ function useUsers() {
       .catch((err) => console.error(err));
   };
 
-  return { users, createUser, updateUser, deleteUser, setUsers, generateFile, getOneUser };
+  const checkBuildStatus = (callback = () => {}) => {
+    UsersServices.checkBuildStatus()
+      .then((res) => {
+        callback(res.data?.isBuilding);
+      })
+      .catch((err) => {
+        console.error("Erreur lors de la vérification du build :", err);
+        callback(false);
+      });
+  };
+  
+
+  return { users, createUser, updateUser, deleteUser, setUsers, generateFile, getOneUser, checkBuildStatus };
 }
 
 export default useUsers;
