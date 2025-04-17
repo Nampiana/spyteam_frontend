@@ -1,3 +1,4 @@
+// ... imports
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useUsers from "../../hooks/utilisateur/useUsers";
@@ -16,27 +17,42 @@ function UsersList() {
 
   const [isBuilding, setIsBuilding] = useState(false);
 
-  // Met à jour le localStorage à chaque changement
   useEffect(() => {
     localStorage.setItem("isBuilding", isBuilding);
   }, [isBuilding]);
 
-  // ⚠️ Vérifie au mount si un build est en cours
   useEffect(() => {
     const fetchBuildStatus = () => {
       checkBuildStatus((serverIsBuilding) => {
-        console.log("Build status from server:", serverIsBuilding);
         setIsBuilding(serverIsBuilding);
       });
     };
-  
-    fetchBuildStatus(); // au démarrage
-  
-    const interval = setInterval(fetchBuildStatus, 5000); // polling
-  
+
+    fetchBuildStatus();
+    const interval = setInterval(fetchBuildStatus, 5000);
     return () => clearInterval(interval);
   }, []);
-  
+
+  // 🔁 CHANGEMENT : Met à jour l’état des utilisateurs en "building"
+  useEffect(() => {
+    const interval = setInterval(() => {
+      users.forEach((user) => {
+        if (user.buildStatus === "building") {
+          getOneUser(user._id, (userData) => {
+            if (userData?.data?.buildStatus === "done") {
+              setUsers((prevUsers) =>
+                prevUsers.map((u) =>
+                  u._id === user._id ? { ...u, ...userData.data } : u
+                )
+              );
+            }
+          });
+        }
+      });
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [users, getOneUser]); // 🔁 CHANGEMENT : dépendance sur users
 
   const navigateToCreateUser = () => {
     navigate("/create-user");
@@ -56,20 +72,12 @@ function UsersList() {
                   user._id === userId ? { ...user, active: 0 } : user
                 )
               );
-              setMessage({
-                type: "success",
-                text: "Utilisateur supprimé avec succès.",
-              });
-
-              setTimeout(() => {
-                setMessage(null);
-              }, 2000);
+              setMessage({ type: "success", text: "Utilisateur supprimé avec succès." });
+              setTimeout(() => setMessage(null), 2000);
             });
           },
         },
-        {
-          label: "Non",
-        },
+        { label: "Non" },
       ],
     });
   };
@@ -91,6 +99,7 @@ function UsersList() {
       const data = { clientId: userId };
       generateFile(data);
 
+      // 🔁 Ce polling est gardé uniquement pour être plus rapide localement
       const intervalId = setInterval(() => {
         getOneUser(userId, (userData) => {
           if (userData?.data?.buildStatus === "done") {
@@ -98,13 +107,10 @@ function UsersList() {
             setIsBuilding(false);
             localStorage.setItem("isBuilding", "false");
             localStorage.removeItem("buildingUserId");
-        
-            // Met à jour toutes les infos du user
+
             setUsers((prevUsers) =>
               prevUsers.map((user) =>
-                user._id === userId
-                  ? { ...user, ...userData.data }
-                  : user
+                user._id === userId ? { ...user, ...userData.data } : user
               )
             );
           }
@@ -120,15 +126,11 @@ function UsersList() {
   const currentUsers = activeUsers.slice(indexOfFirstUser, indexOfLastUser);
 
   const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
   };
 
   const goToPrevPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
   };
 
   return (
@@ -150,9 +152,7 @@ function UsersList() {
               {message && (
                 <div
                   className={`alert ${
-                    message.type === "success"
-                      ? "alert-success"
-                      : "alert-danger"
+                    message.type === "success" ? "alert-success" : "alert-danger"
                   }`}
                   role="alert"
                 >
@@ -197,9 +197,7 @@ function UsersList() {
                               <td>
                                 <button
                                   className="btn btn-primary btn-sm"
-                                  onClick={() =>
-                                    navigate(`/edit-user/${user._id}`)
-                                  }
+                                  onClick={() => navigate(`/edit-user/${user._id}`)}
                                 >
                                   Modifier
                                 </button>
