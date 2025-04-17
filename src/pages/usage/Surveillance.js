@@ -12,7 +12,9 @@ const Surveillance = () => {
   const [users, setUsers] = useState([]);
   const [fullscreenClientId, setFullscreenClientId] = useState(null);
   const [filter, setFilter] = useState("all"); // all | online | offline
+
   const usersCache = useRef({});
+  const lastSeenMap = useRef({});
 
   useEffect(() => {
     const fetchAllUsers = async () => {
@@ -35,6 +37,8 @@ const Surveillance = () => {
         const blob = new Blob([new Uint8Array(data.image)], { type: "image/jpeg" });
         const imageUrl = URL.createObjectURL(blob);
 
+        lastSeenMap.current[data.clientId] = Date.now();
+
         setClients((prevClients) => ({
           ...prevClients,
           [data.clientId]: imageUrl,
@@ -50,12 +54,30 @@ const Surveillance = () => {
       }
     });
 
+    const interval = setInterval(() => {
+      const now = Date.now();
+
+      setClients((prevClients) => {
+        const updatedClients = { ...prevClients };
+
+        Object.keys(prevClients).forEach((clientId) => {
+          if (now - (lastSeenMap.current[clientId] || 0) > 2000) {
+            delete updatedClients[clientId];
+            delete lastSeenMap.current[clientId];
+            delete usersCache.current[clientId];
+          }
+        });
+
+        return updatedClients;
+      });
+    }, 5000);
+
     return () => {
       socket.disconnect();
+      clearInterval(interval);
     };
   }, []);
 
-  // Filtrage des utilisateurs selon l'état sélectionné
   const filteredUsers = users.filter((user) => {
     const isOnline = !!clients[user._id];
     if (filter === "online") return isOnline;
@@ -85,8 +107,6 @@ const Surveillance = () => {
                     <div className="full graph_head">
                       <div className="heading1 margin_0 d-flex justify-content-between align-items-center">
                         <h2>Flux Vidéo en Temps Réel</h2>
-
-                        {/* Filtre */}
                         <select
                           value={filter}
                           onChange={(e) => setFilter(e.target.value)}
